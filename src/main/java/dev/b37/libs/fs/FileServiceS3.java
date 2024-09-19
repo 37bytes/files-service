@@ -17,6 +17,7 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.amazonaws.util.StringUtils;
+import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,17 +73,27 @@ public class FileServiceS3 implements FileService {
 
     @Override
     public void save(Path path, byte[] bytes) throws FileServiceException {
-        save(path, bytes, false);
+        save(path, bytes, false, null);
     }
 
     @Override
     public void save(Path path, byte[] bytes, boolean overwrite) throws FileServiceException {
+        save(path, bytes, overwrite, null);
+    }
+
+    @Override
+    public void save(Path path, byte[] bytes, boolean overwrite, String contentType) throws FileServiceException {
         log.debug("Start upload file {}, overwrite: {}", path, overwrite);
         if (!overwrite && exists(path)) {
             throw new FileServiceException(String.format("File/directory %s already exists, bucket %s", path, bucketName));
         }
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(bytes.length);
+
+        if (contentType != null) {
+            metadata.setContentType(contentType);
+        }
+
         try (InputStream content = new ByteArrayInputStream(bytes)) {
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, path.toString(), content, metadata);
             Upload upload = transferManager.upload(putObjectRequest);

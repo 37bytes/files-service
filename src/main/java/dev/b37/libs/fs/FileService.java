@@ -9,6 +9,8 @@ public interface FileService {
 
     void save(Path path, byte[] bytes, boolean overwrite) throws FileServiceException;
 
+    void save(Path path, byte[] bytes, boolean overwrite, String contentType) throws FileServiceException;
+
     byte[] get(Path path) throws FileServiceException;
 
     void delete(Path path) throws FileServiceException;
