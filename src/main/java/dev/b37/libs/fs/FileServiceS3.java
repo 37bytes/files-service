@@ -153,7 +153,9 @@ public class FileServiceS3 implements FileService {
             ListObjectsV2Request listObjectsRequest = new ListObjectsV2Request();
             listObjectsRequest.setBucketName(bucketName);
             listObjectsRequest.setDelimiter(DELIMITER);
-            listObjectsRequest.setPrefix(prefix);
+            if (!prefix.equalsIgnoreCase(DELIMITER)) {
+                listObjectsRequest.setPrefix(prefix);
+            }
 
             ListObjectsV2Result list = s3client.listObjectsV2(listObjectsRequest);
             List<FileObject> results = new ArrayList<>();
