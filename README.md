@@ -11,13 +11,16 @@
 2. Настроить maven. Отредактировать ~/.m2/settings.xml 
 Значения брать из Vault dev/maven_central
 
+Логин должен идти по токену, поэтому использовать переменные OSSHR_TOKEN_*
+Меняется токен в профиле, в веб версии https://s01.oss.sonatype.org заходить под логином и паролем из vault
+
 ```xml
 <settings>
     <servers>
         <server>
             <id>ossrh</id>
-            <username>USERNAME</username>
-            <password>PASSWORD</password>
+            <username>OSSHR_TOKEN_USERNAME</username>
+            <password>OSSHR_TOKEN_PASSWORD</password>
         </server>
     </servers>
     <profiles>

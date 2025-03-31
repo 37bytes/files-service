@@ -146,7 +146,7 @@ public class FileServiceS3 implements FileService {
     }
 
     @Override
-    public List<String> list(Path path) throws FileServiceException {
+    public List<FileObject> list(Path path) throws FileServiceException {
         String prefix = path.toString().replaceFirst("^" + DELIMITER, "") + DELIMITER;
         log.debug("List directory {}, source path {}", prefix, path);
         try {
@@ -156,12 +156,17 @@ public class FileServiceS3 implements FileService {
             listObjectsRequest.setPrefix(prefix);
 
             ListObjectsV2Result list = s3client.listObjectsV2(listObjectsRequest);
-            List<String> results = new ArrayList<>();
+            List<FileObject> results = new ArrayList<>();
             list.getCommonPrefixes()
-                    .forEach(p -> results.add(p.replaceFirst("^" + prefix, "")));
+                    .forEach(p ->
+                            {
+                                String name = p.replaceFirst("^" + prefix, "");
+                                results.add(new FileObject(FileObjectType.DIRECTORY, name.substring(0, name.length() - 1)));
+                            }
+                    );
             List<S3ObjectSummary> summaries = list.getObjectSummaries();
             for (S3ObjectSummary s : summaries) {
-               results.add(s.getKey().replaceFirst("^" + prefix, ""));
+                results.add(new FileObject(FileObjectType.FILE, s.getKey().replaceFirst("^" + prefix, "")));
             }
             return results;
         } catch (Exception e) {

@@ -17,5 +17,5 @@ public interface FileService {
 
     boolean exists(Path path) throws FileServiceException;
 
-    List<String> list(Path path) throws FileServiceException;
+    List<FileObject> list(Path path) throws FileServiceException;
 }
