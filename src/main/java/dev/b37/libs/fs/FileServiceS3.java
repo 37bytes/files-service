@@ -157,19 +157,26 @@ public class FileServiceS3 implements FileService {
                 listObjectsRequest.setPrefix(prefix);
             }
 
-            ListObjectsV2Result list = s3client.listObjectsV2(listObjectsRequest);
+            ListObjectsV2Result list;
             List<FileObject> results = new ArrayList<>();
-            list.getCommonPrefixes()
-                    .forEach(p ->
-                            {
-                                String name = p.replaceFirst("^" + prefix, "");
-                                results.add(new FileObject(FileObjectType.DIRECTORY, name.substring(0, name.length() - 1)));
-                            }
-                    );
-            List<S3ObjectSummary> summaries = list.getObjectSummaries();
-            for (S3ObjectSummary s : summaries) {
-                results.add(new FileObject(FileObjectType.FILE, s.getKey().replaceFirst("^" + prefix, "")));
-            }
+
+            do {
+                list = s3client.listObjectsV2(listObjectsRequest);
+                list.getCommonPrefixes()
+                        .forEach(p ->
+                                {
+                                    String name = p.replaceFirst("^" + prefix, "");
+                                    results.add(new FileObject(FileObjectType.DIRECTORY, name.substring(0, name.length() - 1)));
+                                }
+                        );
+                List<S3ObjectSummary> summaries = list.getObjectSummaries();
+                for (S3ObjectSummary s : summaries) {
+                    results.add(new FileObject(FileObjectType.FILE, s.getKey().replaceFirst("^" + prefix, "")));
+                }
+                // по-умолчанию возвращается 1000 объектов, поэтому выгружается по частям
+                listObjectsRequest.setContinuationToken(list.getNextContinuationToken());
+            } while (list.isTruncated());
+
             return results;
         } catch (Exception e) {
             throw new FileServiceException(String.format("Error listing %s, bucket %s", path, bucketName), e);
